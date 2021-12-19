@@ -30,11 +30,17 @@ int main(){
     // receive data from the server
     // the second parameter is the location of where to put the data we get back from our socket
     char server_response[256];
+    int true = 1;
+    while(true == 1){
     recv(network_socket, &server_response, sizeof(server_response),0);
-
-    // print out the server's response
-    printf("The server sent the data : %s\n", server_response);
-
+    if(server_response[0] == '\0'){
+        true = 0;
+    }
+    else{
+        // print out the server's response
+        printf("%s", server_response);
+    }
+    }
     //and then close the socket
     close(network_socket);
 

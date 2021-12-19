@@ -1,3 +1,4 @@
+all: tcp_server tcp_client
 tcp_server: myServerSocket.o
 	gcc -g -Wall -o tcp_server myServerSocket.o
 tcp_client: myClientSocket.o
