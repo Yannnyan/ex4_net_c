@@ -4,17 +4,26 @@
 
 int main(){
 
-    char server_message[256], currChar;
-    char filename[] = "mytext.txt\0";
-    FILE * file = fopen(filename, "r");
-    currChar = fgetc(file);
-    int messageIndex=0;
-    while(currChar != EOF){
-        // to know that we dont exceed the message limit
-        server_message[messageIndex++] = currChar;
-        currChar = fgetc(file);
+    FILE *file;
+    char filename[256] = "mytext.txt";
+    file = fopen(filename, "r");
+    char ** text = (char **) malloc(sizeof(char*) *5);
+    for(int i=0; i< 5; i++){
+        text[i] = (char *) malloc(sizeof(char) * 256);
     }
-    server_message[messageIndex] = '\0';
-    printf("%s", server_message);
+    char nextChar = fgetc(file);
+    char message[256];
+    while(nextChar != EOF){
+
+        for(int i = 0; nextChar != EOF && i < 256; i++){
+            message[i] = nextChar;
+            nextChar = fgetc(file);
+        }
+
+
+    }
+
+
+
     return 0;
 }

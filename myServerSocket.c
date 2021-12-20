@@ -13,7 +13,6 @@ int main(){
 
     char server_message[256];
 
-
     // creating the socket
     int server_socket;
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
