@@ -15,18 +15,27 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
-
+#include <sys/time.h>
 
 #include <inttypes.h>
 #include <unistd.h>
 
 #define port 9003
 
-int main(){
+int main(int argc, char **argv){
     // include timer for sending files
     // include congestion control
     // include connect host 
-    
+    char *cc_name;
+    char *filename;
+    if(argc == 3){
+     cc_name = argv[1];
+     filename = argv[2];
+    }
+    else{
+    return 0;
+    }
+
     char buf[256];
     socklen_t len;
 
@@ -45,48 +54,50 @@ int main(){
         return -1;
     }
     // Congestion control : 
-     len=sizeof(buf);
-    if(getsockopt(network_socket, IPPROTO_TCP, TCP_CONGESTION, buf, &len)!=0){
-        perror("getsockopt");
-        return -1;
-    }
+     	len=sizeof(buf);
+	// change reno to cc_name
+	strcpy(buf, cc_name);
+	len = strlen(buf);
+	if(setsockopt(network_socket, IPPROTO_TCP, TCP_CONGESTION, buf, len)!=0){
+		perror("setsockopt");
+		return -1;
+	}
+	len = sizeof(buf);
+	if(getsockopt(network_socket, IPPROTO_TCP, TCP_CONGESTION, buf, &len)!=0){
+		perror("getsockopt");
+		return -1;
+	}
+	printf("New: %s\n",buf);
+	// print current is cubic
     printf("Current: %s\n", buf);
-
-    strcpy(buf, "reno");
-    len= strlen(buf);
-    if(setsockopt(network_socket, IPPROTO_TCP, TCP_CONGESTION, buf, len)!=0){
-        perror("setsockopt");
-        return -1;
-    }
-    len = sizeof(buf);
-    if(getsockopt(network_socket, IPPROTO_TCP, TCP_CONGESTION, buf, &len)!=0){
-        perror("getsockopt");
-        return -1;
-    }
-    printf("New: %s\n",buf);
 
     // sending the files
     
     // set the file
     FILE * file;
-    char filename[256] = "mytext.txt";
+    
     file = fopen(filename, "rb");
     // create buffer to send data with
     char buffer[256]; 
-    time_t currentTime = time(NULL)
-    , lastTime;
-    while(fread(buffer, 1, sizeof(buffer), file) > 0){
-        // send the buffer
-        send(network_socket, buffer, sizeof(buffer), 0);
-    }
-    // send ack to verify one file was sent
-    buffer[0] = EOF;
-    send(network_socket, buffer, sizeof(buffer), 0);
+    struct timeval currentTime, lastTime;
+		gettimeofday(&currentTime,NULL);
+		for(int fileCounter=0; fileCounter < 5; fileCounter ++){
+		    file = fopen(filename, "rb");
+		    while(fread(buffer, 1, sizeof(buffer), file) > 0){
+			// send the buffer
+			send(network_socket, buffer, sizeof(buffer), 0);
+		    }
+		    // send ack to verify one file was sent
+		    buffer[0] = EOF;
+		    buffer[1] = '\0';
+		    send(network_socket, buffer, sizeof(buffer), 0);
+		    fclose(file);
+		    
+		}
+		gettimeofday(&lastTime,NULL);
+	    double dt = (double)(lastTime.tv_sec - currentTime.tv_sec);
+		dt += (double)(lastTime.tv_usec - currentTime.tv_usec)/1000000;
 
-    lastTime = currentTime;
-    currentTime = time(NULL);
-    time_t dt = currentTime - lastTime;
-    printf("Operation done, time took to excecute : %ld", dt);
-    fclose(file);
+	    printf("Operation done for 5 files, time took to excecute : %f", dt);
     close(network_socket);
 }
