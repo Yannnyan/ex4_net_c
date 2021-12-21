@@ -8,5 +8,7 @@
 
 make ex4
 open 2 terminals
+
 1 run ./measure
+
 2 run ./sender "(reno or cubic)" filename.txt example ./sender reno 1mb.txt
